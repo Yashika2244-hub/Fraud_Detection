@@ -207,7 +207,10 @@ def main():
             # ✅ Display Fraud Detection GIF (Left Side)
             gif_path = "C:/Users/Dell/Downloads/Fraud Hoax GIF.gif"
             gif_col.markdown("### 🔍 Fraud Detection in Action")
-            gif_col.image(gif_path, width=350)
+            try:
+                gif_col.image(gif_path, width=350)
+            except FileNotFoundError:
+                gif_col.warning("GIF file not found at specified path")
 
             # ✅ Show Selected Filters Again (Right Side)
             slicer_col.markdown("### 🎛️ Selected Filters")
@@ -546,29 +549,55 @@ df["hour"] = df["date"].dt.hour
 
             # ========== Anomaly Detection ==========
             elif analysis_type == "Anomaly Detection":
-                st.subheader("🚨 Detecting Anomalous Transactions")
+                st.subheader("🚨 Anomalous Transactions Detection")
+                
+                # Get transaction data
+                transaction = get_data("SELECT * FROM transaction")
+                if transaction.empty:
+                    st.warning("No transaction data available for anomaly detection")
+                    return
+                
+                # ===== Z-Score Method =====
+                if "amount" in transaction.columns:
+                    transaction['z_score'] = np.abs(stats.zscore(transaction['amount']))
+                    outliers = transaction[transaction['z_score'] > 3]
+                    
+                    st.write(f"🔹 Total Anomalous Transactions: {len(outliers)}")
+                    st.dataframe(outliers[['client_id', 'amount', 'fraud_classification']].head(10))
 
-                if "amount" in merged_df.columns:
-                    merged_df["amount"] = pd.to_numeric(merged_df["amount"], errors="coerce")
-                    merged_df = merged_df.dropna(subset=["amount"])
+                    # Fraud Anomalies using Z-Score
+                    if 'fraud_classification' in transaction.columns:
+                        fraud_outliers = outliers[outliers['fraud_classification'] == 'Fraud']
+                        st.write(f"🔹 Total Fraud Anomalous Transactions: {len(fraud_outliers)}")
+                        st.dataframe(fraud_outliers[['client_id', 'amount']].head(10))
+                    
+                # ===== IQR Method =====
+                if "amount" in transaction.columns:
+                    Q1 = transaction['amount'].quantile(0.25)
+                    Q3 = transaction['amount'].quantile(0.75)
+                    IQR = Q3 - Q1
+                    
+                    lower_bound = Q1 - 1.5 * IQR
+                    upper_bound = Q3 + 1.5 * IQR
+                    
+                    anomalies_iqr = transaction[(transaction['amount'] < lower_bound) | (transaction['amount'] > upper_bound)]
+                    
+                    st.write(f"🔹 Total Anomalous Transactions (IQR Method): {len(anomalies_iqr)}")
+                    st.dataframe(anomalies_iqr[['client_id', 'amount', 'fraud_classification']].head(10))
 
-                    method = st.radio("Choose an anomaly detection method", ["Z-Score", "IQR"])
+                    # Fraud Anomalies using IQR
+                    if 'fraud_classification' in transaction.columns:
+                        fraud_outliers_iqr = anomalies_iqr[anomalies_iqr['fraud_classification'] == 'Fraud']
+                        st.write(f"🔹 Total Fraud Anomalous Transactions (IQR Method): {len(fraud_outliers_iqr)}")
+                        st.dataframe(fraud_outliers_iqr[['client_id', 'amount']].head(10))
 
-                    if method == "Z-Score":
-                        merged_df["z_score"] = np.abs(stats.zscore(merged_df["amount"].dropna()))
-                        outliers = merged_df[merged_df["z_score"] > 3]
-                        st.dataframe(outliers[["client_id", "amount", "fraud_classification", "z_score"]])
-
-                    elif method == "IQR":
-                        Q1 = merged_df["amount"].quantile(0.25)
-                        Q3 = merged_df["amount"].quantile(0.75)
-                        IQR = Q3 - Q1
-                        lower_bound = Q1 - 1.5 * IQR
-                        upper_bound = Q3 + 1.5 * IQR
-                        anomalies_iqr = merged_df[(merged_df["amount"] < lower_bound) | (merged_df["amount"] > upper_bound)]
-                        st.dataframe(anomalies_iqr[["client_id", "amount", "fraud_classification"]])
-                else:
-                    st.warning("⚠ 'amount' column missing!")
+                # 📊 Visualization: Fraud Anomalies
+                st.subheader("📊 Fraud Anomalies Visualization")
+                fig, ax = plt.subplots(figsize=(10, 5))
+                if "amount" in transaction.columns:
+                    sns.boxplot(x=transaction['amount'], palette='coolwarm', ax=ax)
+                    ax.set_title("Boxplot of Transaction Amounts with Anomalies")
+                    st.pyplot(fig)
 
     # ========== Power BI without Power BI Service ==========
     elif choice == "📊 Power BI":
