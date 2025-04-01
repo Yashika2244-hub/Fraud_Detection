@@ -7,6 +7,7 @@ import numpy as np
 from scipy import stats
 from mysql.connector import Error
 
+
 # ✅ Page Config Set
 st.set_page_config(page_title="Fraud Detection", layout="wide")
 
@@ -119,9 +120,9 @@ def get_merged_data():
 
     # ✅ Data Cleaning (Fixing Amount Column in transactions BEFORE merging)
     if "amount" in transactions.columns:
-        transactions["amount"] = transactions["amount"].astype(str)
-        transactions["amount"] = transactions["amount"].replace('[\$,]', '', regex=True).astype(float)
-        transactions = transactions.dropna(subset=["amount"])
+        transactions["amount"] = transactions["amount"].astype(str)  # पहले string में convert करो
+        transactions["amount"] = transactions["amount"].replace('[\$,]', '', regex=True).astype(float)  # `$` और special characters हटाओ
+        transactions = transactions.dropna(subset=["amount"])  # NaN values drop करो
 
     # ✅ Merging tables
     merged_df = transactions.merge(users, left_on="client_id", right_on="id", how="left")
@@ -131,7 +132,7 @@ def get_merged_data():
     # ✅ Fixing Date Column & Extracting Hour
     if "date" in merged_df.columns:
         merged_df["date"] = pd.to_datetime(merged_df["date"], errors="coerce")
-        merged_df["hour"] = merged_df["date"].dt.hour
+        merged_df["hour"] = merged_df["date"].dt.hour  # Extract hour
     else:
         merged_df["hour"] = None
 
@@ -193,8 +194,8 @@ def main():
             total_fraud_amount = round(float(filtered_df[filtered_df["fraud_classification"] == "Fraud"]["amount"].sum()), 2) 
      
             # ✅ Formatting Properly
-            formatted_total_amount = f"${total_amount:,.2f}"
-            formatted_fraud_amount = f"${total_fraud_amount:,.2f}"
+            formatted_total_amount = f"${total_amount:,.2f}"  # 🔹 Ensures proper formatting
+            formatted_fraud_amount = f"${total_fraud_amount:,.2f}"  # 🔹 Ensures proper formatting
 
             kpi_col1.metric("📑 Total Transactions", f"{total_transactions:,}")
             kpi_col2.metric("💰 Total Amount", formatted_total_amount) 
@@ -207,16 +208,21 @@ def main():
             # ✅ Display Fraud Detection GIF (Left Side)
             gif_path = "C:/Users/Dell/Downloads/Fraud Hoax GIF.gif"
             gif_col.markdown("### 🔍 Fraud Detection in Action")
-            try:
-                gif_col.image(gif_path, width=350)
-            except FileNotFoundError:
-                gif_col.warning("GIF file not found at specified path")
+            gif_col.image(gif_path, width=350)
 
             # ✅ Show Selected Filters Again (Right Side)
             slicer_col.markdown("### 🎛️ Selected Filters")
             slicer_col.write(f"📅 **Year:** {selected_year}")
             slicer_col.write(f"📆 **Month:** {selected_month}")
             slicer_col.write(f"👤 **Gender:** {selected_gender}")
+
+    # ========== Transactions Page ==========  
+    elif choice == "Transactions":
+        st.title("📂 Transactions Data")
+        df = get_data("SELECT * FROM transaction")  # ✅ LIMIT हटाया गया
+        if not df.empty:
+            st.dataframe(df, height=800)  # ✅ अब पूरा Data Show होगा
+            st.write(f"🔹 Total Rows: {len(df)}")
 
     # ========== MySQL Tables ==========
     elif choice == "🗂️ Datasets":
@@ -468,7 +474,7 @@ df["hour"] = df["date"].dt.hour
                 # 📌 Fraud Cases by Transaction Hour
                 if "date" in merged_df.columns:
                     st.subheader("📌 Fraud Cases by Hour of Transaction")
-                    merged_df["hour"] = pd.to_datetime(merged_df["date"]).dt.hour
+                    merged_df["hour"] = pd.to_datetime(merged_df["date"]).dt.hour  # Extract hour
                     fig, ax = plt.subplots(figsize=(10, 5))
                     sns.countplot(data=merged_df[merged_df['fraud_classification'] == 'Fraud'], x='hour', palette='flare', ax=ax)
                     ax.set_xlabel("Hour of the Day")
@@ -479,125 +485,141 @@ df["hour"] = df["date"].dt.hour
             # ========== Statistical Analysis ==========
             elif analysis_type == "Statistical Analysis":
                 st.subheader("📊 Statistical Analysis of Fraud Patterns")
-
-                # 1. Descriptive Statistics
-                st.write("### 🔍 Descriptive Statistics")
-                if "amount" in merged_df.columns:
-                    st.write("#### Transaction Amount Statistics")
-                    desc_stats = merged_df["amount"].describe()
-                    st.dataframe(desc_stats.to_frame().T)
-
-                # 2. Fraud vs Non-Fraud Comparison
-                st.write("### 🔍 Fraud vs Non-Fraud Comparison")
-                if "fraud_classification" in merged_df.columns:
-                    fraud_stats = merged_df.groupby("fraud_classification")["amount"].agg(['count', 'mean', 'std', 'min', 'max'])
-                    st.dataframe(fraud_stats)
-
-                # 3. T-Test for Amount Differences
-                st.write("### 🔍 T-Test: Fraud vs Non-Fraud Amounts")
+                
                 if "fraud_classification" in merged_df.columns and "amount" in merged_df.columns:
-                    fraud_amounts = merged_df[merged_df["fraud_classification"] == "Fraud"]["amount"]
-                    non_fraud_amounts = merged_df[merged_df["fraud_classification"] == "Non-Fraud"]["amount"]
+                    # Clean data
+                    merged_df["amount"] = pd.to_numeric(merged_df["amount"], errors="coerce")
+                    merged_df = merged_df.dropna(subset=["amount", "fraud_classification"])
                     
+                    # Separate fraud and non-fraud transactions
+                    fraud_amounts = merged_df[merged_df['fraud_classification'] == 'Fraud']['amount']
+                    non_fraud_amounts = merged_df[merged_df['fraud_classification'] == 'Non-Fraud']['amount']
+                    
+                    # Create two columns for metrics
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.metric("Mean Fraud Amount", f"${fraud_amounts.mean():.2f}")
+                        st.metric("Median Fraud Amount", f"${fraud_amounts.median():.2f}")
+                        
+                    with col2:
+                        st.metric("Mean Non-Fraud Amount", f"${non_fraud_amounts.mean():.2f}")
+                        st.metric("Median Non-Fraud Amount", f"${non_fraud_amounts.median():.2f}")
+                    
+                    # T-Test
+                    st.markdown("### Hypothesis Testing (T-Test)")
                     t_stat, p_value = stats.ttest_ind(fraud_amounts, non_fraud_amounts, equal_var=False)
                     
-                    st.write(f"**T-statistic:** {t_stat:.4f}")
-                    st.write(f"**P-value:** {p_value:.4f}")
-                    st.write("**Conclusion:** " + ("Significant difference" if p_value < 0.05 else "No significant difference"))
+                    st.write(f"**T-Statistic:** {t_stat:.4f}")
+                    st.write(f"**P-Value:** {p_value:.4f}")
+                    
+                    if p_value < 0.05:
+                        st.success("✅ Statistically significant difference between fraud and non-fraud amounts (p < 0.05)")
+                    else:
+                        st.warning("⚠ No statistically significant difference between fraud and non-fraud amounts")
+                    
+                    # Fraud Rate
+                    fraud_rate = len(fraud_amounts) / len(merged_df) * 100
+                    st.metric("Overall Fraud Rate", f"{fraud_rate:.2f}%")
                     
                     # Visualization
-                    fig, ax = plt.subplots(figsize=(10, 6))
-                    sns.boxplot(x="fraud_classification", y="amount", data=merged_df, ax=ax)
-                    ax.set_title("Transaction Amount by Fraud Classification")
-                    st.pyplot(fig)
-
-                # 4. Correlation Analysis
-                st.write("### 🔍 Correlation Analysis")
-                if {"amount", "hour"}.issubset(merged_df.columns):
-                    numeric_cols = merged_df.select_dtypes(include=[np.number]).columns
-                    if len(numeric_cols) > 0:
-                        corr_matrix = merged_df[numeric_cols].corr()
-                        fig, ax = plt.subplots(figsize=(10, 8))
-                        sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", ax=ax)
-                        ax.set_title("Correlation Matrix of Numeric Features")
-                        st.pyplot(fig)
-
-                # 5. Time-based Analysis
-                st.write("### 🔍 Time-based Fraud Patterns")
-                if "date" in merged_df.columns:
-                    merged_df["hour"] = pd.to_datetime(merged_df["date"]).dt.hour
-                    fraud_by_hour = merged_df[merged_df["fraud_classification"] == "Fraud"].groupby("hour").size()
+                    st.markdown("### Amount Distribution Comparison")
+                    plt.figure(figsize=(10,6))
+                    sns.histplot(fraud_amounts, bins=50, color='red', label="Fraud", kde=True, alpha=0.6)
+                    sns.histplot(non_fraud_amounts, bins=50, color='blue', label="Non-Fraud", kde=True, alpha=0.6)
+                    plt.legend()
+                    plt.title('Fraud vs Non-Fraud Amount Distribution')
+                    plt.xlabel('Transaction Amount')
+                    plt.ylabel('Frequency')
+                    st.pyplot(plt)
                     
-                    fig, ax = plt.subplots(figsize=(12, 6))
-                    fraud_by_hour.plot(kind="bar", color="red", ax=ax)
-                    ax.set_title("Fraud Cases by Hour of Day")
-                    ax.set_xlabel("Hour")
-                    ax.set_ylabel("Number of Fraud Cases")
-                    st.pyplot(fig)
-
-                # 6. Age Group Analysis
-                st.write("### 🔍 Age Group Analysis")
-                if "AgeGroup" in merged_df.columns:
-                    age_fraud = merged_df[merged_df["fraud_classification"] == "Fraud"].groupby("AgeGroup").size()
+                    # Boxplot for comparison
+                    st.markdown("### Amount Distribution (Boxplot)")
+                    plt.figure(figsize=(10,6))
+                    sns.boxplot(x='fraud_classification', y='amount', data=merged_df, 
+                               palette={"Fraud": "red", "Non-Fraud": "blue"})
+                    plt.title('Transaction Amount by Fraud Classification')
+                    plt.xlabel('Fraud Classification')
+                    plt.ylabel('Amount ($)')
+                    st.pyplot(plt)
                     
-                    fig, ax = plt.subplots(figsize=(10, 6))
-                    age_fraud.plot(kind="bar", color="purple", ax=ax)
-                    ax.set_title("Fraud Cases by Age Group")
-                    ax.set_xlabel("Age Group")
-                    ax.set_ylabel("Number of Fraud Cases")
-                    st.pyplot(fig)
+                else:
+                    st.error("Required columns ('amount' or 'fraud_classification') missing in the dataset!")
 
             # ========== Anomaly Detection ==========
             elif analysis_type == "Anomaly Detection":
-                st.subheader("🚨 Anomalous Transactions Detection")
-                
-                # Get transaction data
-                transaction = get_data("SELECT * FROM transaction")
-                if transaction.empty:
-                    st.warning("No transaction data available for anomaly detection")
-                    return
-                
-                # ===== Z-Score Method =====
-                if "amount" in transaction.columns:
-                    transaction['z_score'] = np.abs(stats.zscore(transaction['amount']))
-                    outliers = transaction[transaction['z_score'] > 3]
-                    
-                    st.write(f"🔹 Total Anomalous Transactions: {len(outliers)}")
-                    st.dataframe(outliers[['client_id', 'amount', 'fraud_classification']].head(10))
+                st.subheader("🚨 Detecting Anomalous Transactions")
 
-                    # Fraud Anomalies using Z-Score
-                    if 'fraud_classification' in transaction.columns:
-                        fraud_outliers = outliers[outliers['fraud_classification'] == 'Fraud']
-                        st.write(f"🔹 Total Fraud Anomalous Transactions: {len(fraud_outliers)}")
-                        st.dataframe(fraud_outliers[['client_id', 'amount']].head(10))
-                    
-                # ===== IQR Method =====
-                if "amount" in transaction.columns:
-                    Q1 = transaction['amount'].quantile(0.25)
-                    Q3 = transaction['amount'].quantile(0.75)
-                    IQR = Q3 - Q1
-                    
-                    lower_bound = Q1 - 1.5 * IQR
-                    upper_bound = Q3 + 1.5 * IQR
-                    
-                    anomalies_iqr = transaction[(transaction['amount'] < lower_bound) | (transaction['amount'] > upper_bound)]
-                    
-                    st.write(f"🔹 Total Anomalous Transactions (IQR Method): {len(anomalies_iqr)}")
-                    st.dataframe(anomalies_iqr[['client_id', 'amount', 'fraud_classification']].head(10))
+                if "amount" in merged_df.columns:
+                    # Clean amount column
+                    merged_df["amount"] = pd.to_numeric(merged_df["amount"], errors="coerce")
+                    merged_df = merged_df.dropna(subset=["amount"])
 
-                    # Fraud Anomalies using IQR
-                    if 'fraud_classification' in transaction.columns:
-                        fraud_outliers_iqr = anomalies_iqr[anomalies_iqr['fraud_classification'] == 'Fraud']
-                        st.write(f"🔹 Total Fraud Anomalous Transactions (IQR Method): {len(fraud_outliers_iqr)}")
-                        st.dataframe(fraud_outliers_iqr[['client_id', 'amount']].head(10))
+                    # Method selection
+                    method = st.radio("Choose an anomaly detection method", ["Z-Score", "IQR"], horizontal=True)
 
-                # 📊 Visualization: Fraud Anomalies
-                st.subheader("📊 Fraud Anomalies Visualization")
-                fig, ax = plt.subplots(figsize=(10, 5))
-                if "amount" in transaction.columns:
-                    sns.boxplot(x=transaction['amount'], palette='coolwarm', ax=ax)
-                    ax.set_title("Boxplot of Transaction Amounts with Anomalies")
-                    st.pyplot(fig)
+                    # Z-Score Method
+                    if method == "Z-Score":
+                        st.markdown("### Z-Score Method")
+                        st.info("Transactions with Z-Score > 3 are considered anomalies")
+                        
+                        # Calculate Z-Score
+                        merged_df["z_score"] = np.abs(stats.zscore(merged_df["amount"]))
+                        
+                        # Allow threshold adjustment
+                        z_threshold = st.slider("Select Z-Score threshold", 
+                                               min_value=2.0, 
+                                               max_value=5.0, 
+                                               value=3.0, 
+                                               step=0.1,
+                                               help="Standard threshold is 3.0")
+                        
+                        # Find outliers
+                        outliers = merged_df[merged_df["z_score"] > z_threshold]
+                        
+                        # Display results
+                        st.metric("Total Anomalies Detected", len(outliers))
+                        st.dataframe(outliers[["client_id", "amount", "fraud_classification", "z_score"]].sort_values("z_score", ascending=False))
+                        
+                        # Fraud-specific anomalies
+                        if "fraud_classification" in merged_df.columns:
+                            fraud_outliers = outliers[outliers["fraud_classification"] == "Fraud"]
+                            st.metric("Fraud Anomalies", len(fraud_outliers))
+                            st.dataframe(fraud_outliers[["client_id", "amount", "z_score"]])
+
+                    # IQR Method
+                    elif method == "IQR":
+                        st.markdown("### IQR Method")
+                        st.info("Transactions outside 1.5*IQR range are considered anomalies")
+                        
+                        # Calculate IQR bounds
+                        Q1 = merged_df["amount"].quantile(0.25)
+                        Q3 = merged_df["amount"].quantile(0.75)
+                        IQR = Q3 - Q1
+                        
+                        # Allow multiplier adjustment
+                        iqr_multiplier = st.slider("Select IQR multiplier", 
+                                                 min_value=1.0, 
+                                                 max_value=3.0, 
+                                                 value=1.5, 
+                                                 step=0.1,
+                                                 help="Standard multiplier is 1.5")
+                        
+                        lower_bound = Q1 - iqr_multiplier * IQR
+                        upper_bound = Q3 + iqr_multiplier * IQR
+                        
+                        # Find anomalies
+                        anomalies_iqr = merged_df[(merged_df["amount"] < lower_bound) | (merged_df["amount"] > upper_bound)]
+                        
+                        # Display results
+                        st.metric("Total Anomalies Detected", len(anomalies_iqr))
+                        st.dataframe(anomalies_iqr[["client_id", "amount", "fraud_classification"]].sort_values("amount", ascending=False))
+                        
+                        # Fraud-specific anomalies
+                        if "fraud_classification" in merged_df.columns:
+                            fraud_outliers_iqr = anomalies_iqr[anomalies_iqr["fraud_classification"] == "Fraud"]
+                            st.metric("Fraud Anomalies", len(fraud_outliers_iqr))
+                            st.dataframe(fraud_outliers_iqr[["client_id", "amount"]])
 
     # ========== Power BI without Power BI Service ==========
     elif choice == "📊 Power BI":
@@ -605,7 +627,7 @@ df["hour"] = df["date"].dt.hour
         st.write("### 🔹Download Power BI Report as PDF")
         
         # ✅ Correct File Path
-        pdf_path = "C:/Users/Dell/Downloads/fin.pdf"
+        pdf_path = "C:/Users/Dell/Downloads/fin.pdf"  # Or use "C:\\Users\\Dell\\Downloads\\fin.pdf"
         
         try:
             with open(pdf_path, "rb") as pdf_file:
@@ -619,7 +641,7 @@ df["hour"] = df["date"].dt.hour
         
         # ✅ MySQL SQL File Download
         st.subheader("🗄️ Download MySQL SQL File")
-        sql_file_path = "C:/Users/Dell/Downloads/fraud_detection_analysis.sql"
+        sql_file_path = "C:/Users/Dell/Downloads/Financial_fraud_detection.sql"
         
         try:
             with open(sql_file_path, "r", encoding="utf-8") as sql_file:
@@ -640,7 +662,7 @@ df["hour"] = df["date"].dt.hour
 
         # ✅ Python Script Download
         st.subheader("🐍 Download Python Jupyter Notebook")
-        python_script_path = "C:/Users/Dell/Downloads/fraud_detection (2).ipynb"
+        python_script_path = "C:/Users/Dell/Downloads/fraud_detection2.ipynb"
         
         try:
             with open(python_script_path, "r", encoding="utf-8") as py_file:
