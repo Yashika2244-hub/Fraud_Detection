@@ -1,6 +1,6 @@
 streamlit==1.28.0
 mysql-connector-python==8.1.0
-pandas==1.5.3
+pandas==1.3.5
 seaborn
 matplotlib
 numpy
