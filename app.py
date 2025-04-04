@@ -153,11 +153,6 @@ def get_total_fraud_amount():
 
 # ========== STREAMLIT MAIN FUNCTION ==========
 def main():
-    # ✅ DEBUG: Check if environment variables are loading
-    st.write("HOST:", os.environ.get("MYSQLHOST"))
-    st.write("USER:", os.environ.get("MYSQLUSER"))
-    st.write("DB:", os.environ.get("MYSQLDATABASE"))
-
     # Sidebar Navigation
     st.sidebar.title("📌 Navigation")
     menu_options = ["🏠 Home", "🗂️ Datasets", "📜 SQL Query", "🐍 Python", "📊 Power BI", "⬇️ Download"]
