@@ -56,11 +56,11 @@ def get_db():
     """Connect to MySQL Database"""
     try:
         conn = mysql.connector.connect(
-            host="127.0.0.1",
+            host="ballast.proxy.rlwy.net",
             user="root",
-            password="@Yashi123**",
-            database="fraud_detection",
-            port=3306,
+            password="TQrukRMDKqvUVWhEKiTBrbLQtaQlkICE",
+            database="railway",
+            port=14121,
             auth_plugin='mysql_native_password',
             connect_timeout=5,
             use_pure=True
