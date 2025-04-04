@@ -60,7 +60,7 @@ def get_db():
             user="root",
             password="TQrukRMDKqvUVWhEKiTBrbLQtaQlkICE",
             database="railway",
-            port=14121,
+            port=12345,
             auth_plugin='mysql_native_password',
             connect_timeout=5,
             use_pure=True
