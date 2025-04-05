@@ -16,41 +16,49 @@ st.set_page_config(page_title="Fraud Detection", layout="wide")
 st.markdown(
     """
     <style>
+    /* Sidebar Styling */
     [data-testid="stSidebar"] {
-        background-color: #0E1117 !important; 
+        background-color: #0E1117 !important;
         color: white !important;
     }
 
     [data-testid="stSidebar"] * {
-        color: #D3D3D3 !important;  
+        color: #F0F0F0 !important;
         font-size: 16px !important;
     }
 
-    .st-emotion-cache-1d391kg {
-        color: white !important;
-        font-weight: bold;
-    }
-
+    /* Main App Background */
     [data-testid="stAppViewContainer"], .main, .block-container {
         background-color: #FFFFFF !important;
     }
 
+    /* Text Styling */
     h1, h2, h3, h4 {
-        color: #222222 !important;
+        color: #1E1E1E !important;
     }
 
-    p, span {
+    p, span, label, div {
         color: #333333 !important;
         font-size: 16px !important;
     }
 
+    /* Buttons, Selects, Inputs */
     .stButton>button, .stTextInput>div>div>input, .stSelectbox>div>div>div {
         color: black !important;
+    }
+
+    /* KPI and Metric blocks */
+    .element-container .stMetric {
+        background-color: #F5F5F5 !important;
+        border-radius: 8px;
+        padding: 10px;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
+
+
 
 # ========== DATABASE CONNECTION ==========
 def get_db():
