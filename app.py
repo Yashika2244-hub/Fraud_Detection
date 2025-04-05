@@ -207,7 +207,7 @@ def main():
             gif_col, slicer_col = st.columns([2, 1])
 
             # ✅ Display Fraud Detection GIF (Left Side)
-            gif_path = "C:/Users/Dell/Downloads/Fraud Hoax GIF.gif"
+            gif_path = "assets/Fraud Hoax GIF.gif"
             gif_col.markdown("### 🔍 Fraud Detection in Action")
             gif_col.image(gif_path, width=350)
 
@@ -628,7 +628,7 @@ df["hour"] = df["date"].dt.hour
         st.write("### 🔹Download Power BI Report as PDF")
         
         # ✅ Correct File Path
-        pdf_path = "C:/Users/Dell/Downloads/fin.pdf"  # Or use "C:\\Users\\Dell\\Downloads\\fin.pdf"
+        pdf_path = "assets/fin.pdf"
         
         try:
             with open(pdf_path, "rb") as pdf_file:
@@ -642,7 +642,7 @@ df["hour"] = df["date"].dt.hour
         
         # ✅ MySQL SQL File Download
         st.subheader("🗄️ Download MySQL SQL File")
-        sql_file_path = "C:/Users/Dell/Downloads/Financial_fraud_detection.sql"
+        sql_file_path = "assets/Financial_fraud_detection.sql"
         
         try:
             with open(sql_file_path, "r", encoding="utf-8") as sql_file:
@@ -653,7 +653,7 @@ df["hour"] = df["date"].dt.hour
 
         # ✅ Power BI Report Download
         st.subheader("📊 Download Power BI Report")
-        pdf_path = "C:/Users/Dell/Downloads/fin.pdf"
+        pdf_path = "assets/fin.pdf"
         
         try:
             with open(pdf_path, "rb") as pdf_file:
@@ -663,7 +663,7 @@ df["hour"] = df["date"].dt.hour
 
         # ✅ Python Script Download
         st.subheader("🐍 Download Python Jupyter Notebook")
-        python_script_path = "C:/Users/Dell/Downloads/fraud_detection2.ipynb"
+        python_script_path = "assets/fraud_detection2.ipynb"
         
         try:
             with open(python_script_path, "r", encoding="utf-8") as py_file:
