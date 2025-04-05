@@ -19,7 +19,7 @@ st.markdown(
     /* Sidebar Styling */
     [data-testid="stSidebar"] {
         background-color: #0E1117 !important;
-        color: white !important;
+        color: #E0E0E0 !important;
     }
 
     [data-testid="stSidebar"] * {
