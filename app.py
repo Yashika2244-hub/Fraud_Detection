@@ -19,11 +19,11 @@ st.markdown(
     /* Sidebar Styling */
     [data-testid="stSidebar"] {
         background-color: #0E1117 !important;
-        color: #E0E0E0 !important;
+        color: white !important;
     }
 
     [data-testid="stSidebar"] * {
-        color: #F0F0F0 !important;
+        color: black!important;
         font-size: 16px !important;
     }
 
