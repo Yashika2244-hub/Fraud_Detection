@@ -80,6 +80,7 @@ def get_db():
     return None
 
 # ========== FETCH DATA FUNCTIONS ==========
+@st.cache_data
 def get_data(query):
     """Execute SQL query and return DataFrame"""
     conn = get_db()
@@ -99,6 +100,7 @@ def get_data(query):
         st.warning("⚠️ No database connection.")
         return pd.DataFrame()
 
+@st.cache_data
 def get_table_names():
     """Fetch all MySQL table names"""
     conn = get_db()
@@ -211,13 +213,6 @@ def main():
             kpi_col3.metric("🚨 Fraud Transactions", f"{total_fraud_transactions:,}")
             kpi_col4.metric("🔥 Fraud Amount", formatted_fraud_amount) 
 
-            # ✅ Layout for GIF & Filters (Below KPIs)
-            gif_col, slicer_col = st.columns([2, 1])
-
-            # ✅ Display Fraud Detection GIF (Left Side)
-            gif_path = "assets/Fraud Hoax GIF.gif"
-            gif_col.markdown("### 🔍 Fraud Detection in Action")
-            gif_col.image(gif_path, width=350)
 
             # ✅ Show Selected Filters Again (Right Side)
             slicer_col.markdown("### 🎛️ Selected Filters")
