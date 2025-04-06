@@ -58,8 +58,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
-
 # ========== DATABASE CONNECTION ==========
 def get_db():
     """Connect to MySQL Database"""
@@ -203,18 +201,18 @@ def main():
             total_amount = round(float(filtered_df["amount"].sum()), 2) 
             total_fraud_transactions = len(filtered_df[filtered_df["fraud_classification"] == "Fraud"])
             total_fraud_amount = round(float(filtered_df[filtered_df["fraud_classification"] == "Fraud"]["amount"].sum()), 2) 
-     
+        
             # ✅ Formatting Properly
-            formatted_total_amount = f"${total_amount:,.2f}"  # 🔹 Ensures proper formatting
-            formatted_fraud_amount = f"${total_fraud_amount:,.2f}"  # 🔹 Ensures proper formatting
+            formatted_total_amount = f"${total_amount:,.2f}"  
+            formatted_fraud_amount = f"${total_fraud_amount:,.2f}"
 
             kpi_col1.metric("📑 Total Transactions", f"{total_transactions:,}")
             kpi_col2.metric("💰 Total Amount", formatted_total_amount) 
             kpi_col3.metric("🚨 Fraud Transactions", f"{total_fraud_transactions:,}")
             kpi_col4.metric("🔥 Fraud Amount", formatted_fraud_amount) 
 
-
-            # ✅ Show Selected Filters Again (Right Side)
+            # ✅Filters 
+            slicer_col = st.container()
             slicer_col.markdown("### 🎛️ Selected Filters")
             slicer_col.write(f"📅 **Year:** {selected_year}")
             slicer_col.write(f"📆 **Month:** {selected_month}")
@@ -223,9 +221,9 @@ def main():
     # ========== Transactions Page ==========  
     elif choice == "Transactions":
         st.title("📂 Transactions Data")
-        df = get_data("SELECT * FROM transaction")  # ✅ LIMIT हटाया गया
+        df = get_data("SELECT * FROM transaction")  
         if not df.empty:
-            st.dataframe(df, height=800)  # ✅ अब पूरा Data Show होगा
+            st.dataframe(df, height=800)  
             st.write(f"🔹 Total Rows: {len(df)}")
 
     # ========== MySQL Tables ==========
