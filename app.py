@@ -633,7 +633,7 @@ df["hour"] = df["date"].dt.hour
         
         try:
             with open(pdf_path, "rb") as pdf_file:
-                st.download_button(label="📥 Download Power BI Report", data=pdf_file, file_name="fraud detection.pdf", mime="application/pdf")
+                st.download_button(label="📥 Download Power BI Report", data=pdf_file, file_name="Fraud detection.pdf", mime="application/pdf")
         except FileNotFoundError:
             st.error("⚠️ PDF File Not Found! Please check the file path.")
 
@@ -658,7 +658,7 @@ df["hour"] = df["date"].dt.hour
         
         try:
             with open(pdf_path, "rb") as pdf_file:
-                st.download_button(label="📥 Download Power BI Report", data=pdf_file, file_name="fraud detection.pdf", mime="application/pdf")
+                st.download_button(label="📥 Download Power BI Report", data=pdf_file, file_name="Fraud detection.pdf", mime="application/pdf")
         except FileNotFoundError:
             st.error("⚠ Power BI Report not found! Please check the file path.")
 
