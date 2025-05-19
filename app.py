@@ -59,6 +59,7 @@ st.markdown(
 )
 
 # ========== DATABASE CONNECTION ==========
+@st.cache_resource(ttl=3600)
 def get_db():
     """Connect to MySQL Database"""
     try:
@@ -78,7 +79,7 @@ def get_db():
     return None
 
 # ========== FETCH DATA FUNCTIONS ==========
-@st.cache_data
+@st.cache_data(ttl=600, show_spinner="Loading data...")
 def get_data(query):
     """Execute SQL query and return DataFrame"""
     conn = get_db()
@@ -98,7 +99,7 @@ def get_data(query):
         st.warning("⚠️ No database connection.")
         return pd.DataFrame()
 
-@st.cache_data
+@st.cache_data(ttl=3600)
 def get_table_names():
     """Fetch all MySQL table names"""
     conn = get_db()
@@ -116,6 +117,7 @@ def get_table_names():
                 conn.close()
     return []
 
+@st.cache_data(ttl=300, show_spinner="Merging datasets...")
 def get_merged_data():
     """Fetch and merge transactions, users, merchants, and cards"""
     transactions = get_data("SELECT * FROM transaction")
@@ -161,6 +163,17 @@ def get_total_fraud_amount():
 
 # ========== STREAMLIT MAIN FUNCTION ==========
 def main():
+    # Initialize session state
+    if 'data_loaded' not in st.session_state:
+        with st.spinner('Loading application data...'):
+            st.session_state.merged_df = get_merged_data()
+            st.session_state.data_loaded = True
+    
+    # Show loading message if data isn't ready
+    if not st.session_state.get('data_loaded', False):
+        st.warning("Application is loading...")
+        return
+
     # Sidebar Navigation
     st.sidebar.title("📌 Navigation")
     menu_options = ["🏠 Home", "🗂️ Datasets", "📜 SQL Query", "🐍 Python", "📊 Power BI", "⬇️ Download"]
