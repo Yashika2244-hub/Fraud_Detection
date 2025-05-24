@@ -1,4 +1,4 @@
- Fraud Detection and Prevention Platform
+# Fraud Detection and Prevention Platform
 A full-stack analytics solution to identify and prevent financial fraud using SQL, Python, Power BI, and Streamlit.
 
 🔍 Project Overview
