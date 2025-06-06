@@ -8,7 +8,7 @@ try:
         password="@Yashi123**",
         database="fraud_detection"
     )
-    print("✅ MySQL से कनेक्शन सफल!")
+    print("✅ MySQL Connection Successful!")
     conn.close()
 except Exception as e:
-    print(f"❌ त्रुटि: {e}")
+    print(f"❌ error: {e}")
