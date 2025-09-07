@@ -17,10 +17,9 @@ Enable real-time decision-making via dashboards and alerts
 
 🛠️ Tools & Technologies
 Tool	Purpose
-Python (Jupyter)	Anomaly detection, EDA, and fraud pattern analysis
-MySQL	Data extraction, joins, and aggregation across tables
-Power BI	Interactive dashboards, card brand analysis, decomposition tree
-Excel	Pre-processing and financial reporting
+Python (Jupyter) -	Anomaly detection, EDA, and fraud pattern analysis
+MySQL-Data extraction, joins, and aggregation across tables
+Power BI-Interactive dashboards, card brand analysis, decomposition tree
 Streamlit	Web app deployment for real-time fraud insights
 
 📊 Key Features
